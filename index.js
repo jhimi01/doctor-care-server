@@ -38,7 +38,12 @@ async function run() {
     const result = await usersCollection.insertOne(body);
     res.send(result);
     })
-    
+
+    // get all users from the mongodb
+    app.get('/users', async(req, res) => {
+      const result = await usersCollection.find().toArray()
+      res.send(result)
+    })
 
 
 
