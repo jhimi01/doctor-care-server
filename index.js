@@ -29,11 +29,16 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const usersCollection = client.db("insertDB").collection("haiku");
+    const usersCollection = client.db("facebook").collection("users");
 
 
     // add all user to the mongodb
-    app.post()
+    app.post('/users', async(req, res) => {
+    const body = req.body;
+    const result = await usersCollection.insertOne(body);
+    res.send(result);
+    })
+    
 
 
 
