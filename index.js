@@ -1,11 +1,11 @@
 
 const express = require('express')
 const app = express()
-const cors = require('cors')
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const cors = require('cors')
 require('dotenv').config()
-
 const port = process.env.PORT || 5000
+
 
 app.use(express.json())
 app.use(cors())
@@ -14,7 +14,7 @@ app.use(cors())
 
 
 
-const uri = "mongodb+srv://<username>:<password>@cluster0.ysrfscy.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.FACEBOOKUSER}:${process.env.PASS}@cluster0.ysrfscy.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -29,6 +29,11 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const usersCollection = client.db("insertDB").collection("haiku");
+
+
+    // add all user to the mongodb
+    app.post()
 
 
 
