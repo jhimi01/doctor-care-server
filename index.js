@@ -30,6 +30,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const usersCollection = client.db("facebook").collection("users");
+    const postsCollection = client.db("facebook").collection("posts");
 
 
     // add all user to the mongodb
@@ -42,6 +43,15 @@ async function run() {
     // get all users from the mongodb
     app.get('/users', async(req, res) => {
       const result = await usersCollection.find().toArray()
+      res.send(result)
+    })
+
+
+
+    // upload on facebook data
+    app.post('/posts', async(req, res) => {
+      const body = req.body;
+      const result = await postsCollection.insertOne(body)
       res.send(result)
     })
 
