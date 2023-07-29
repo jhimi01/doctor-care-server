@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const usersCollection = client.db("facebook").collection("users");
     const postsCollection = client.db("facebook").collection("posts");
 
@@ -58,6 +58,21 @@ async function run() {
       // get uploaded on facebook data
       app.get('/posts', async(req, res) =>{
         const result = await postsCollection.find().toArray()
+        res.send(result)
+      })
+
+
+      // get all myposts base on email
+      app.get(`/myposts`, async(req, res) =>{
+        const email = req.query.email;
+        if (!email) {
+          res.send([])
+        }
+        const query = { email: email }
+        const result = await postsCollection.
+        find(query)
+        .sort({ uploadedtime: -1 })
+        .toArray()
         res.send(result)
       })
 
