@@ -55,6 +55,11 @@ async function run() {
       res.send(result)
     })
 
+      // get uploaded on facebook data
+      app.get('/posts', async(req, res) =>{
+        const result = await postsCollection.find().toArray()
+        res.send(result)
+      })
 
 
 
