@@ -64,16 +64,18 @@ async function run() {
         .sort({ uploadedtime: 1 })
         .toArray();
       res.send(result);
+      console.log("my post", result);
     });
 
     // --------------modified on facebook todays --------------
 
     // Get a specific post based on email and postId
-    app.get("/myposts/:id", async (req, res) => {
+    app.delete("/myposts/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
+      const email = req.query.email;
+      const query = { _id: new ObjectId(id), email };
       try {
-        const result = await postsCollection.findOne(query);
+        const result = await postsCollection.deleteOne(query);
         if (result) {
           res.status(200).send(result);
         } else {
@@ -81,60 +83,6 @@ async function run() {
         }
       } catch (error) {
         res.status(500).send({ message: "Server error", error });
-      }
-    });
-
-    // Delete post by postId
-    app.delete("/myposts/:postId", async (req, res) => {
-      const { postId } = req.params;
-
-      try {
-        // Find and delete the post
-        const result = await postsCollection.deleteOne(postId);
-
-        if (!result) {
-          return res.status(404).json({ message: "Post not found" });
-        }
-
-        res
-          .status(200)
-          .json({ message: `Post with ID ${postId} deleted successfully` });
-      } catch (error) {
-        console.error("Error deleting post:", error);
-        res.status(500).json({ message: "Internal server error" });
-      }
-    });
-
-    // delete post base on email
-    app.delete("/myposts/single", async (req, res) => {
-      const email = req.query.email;
-      const postId = req.query.postId;
-
-      if (!email || !postId) {
-        return res
-          .status(400)
-          .send({ message: "Email and Post ID are required." });
-      }
-
-      console.log(`Deleting post with postId: ${postId} for user: ${email}`);
-
-      try {
-        // Ensure postId is converted to ObjectId if it's a Mongo ObjectId
-        const query = { email: email, postId: postId }; // Assuming postId is a string here, adjust if needed
-
-        const result = await postsCollection.deleteOne(query);
-        if (result.deletedCount === 1) {
-          res.send({ message: "Post deleted successfully." });
-        } else {
-          res
-            .status(404)
-            .send({ message: "Post not found or unauthorized access." });
-        }
-      } catch (error) {
-        console.error("Error deleting post:", error);
-        res
-          .status(500)
-          .send({ message: "An error occurred while deleting the post." });
       }
     });
 
