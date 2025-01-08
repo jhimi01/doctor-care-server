@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -61,13 +61,52 @@ async function run() {
       const query = { email: email };
       const result = await postsCollection
         .find(query)
-        .sort({ uploadedtime: -1 })
+        .sort({ uploadedtime: 1 })
         .toArray();
       res.send(result);
     });
 
-    // delete a specific post by email and post ID
-    app.delete("/myposts", async (req, res) => {
+    // --------------modified on facebook todays --------------
+
+    // Get a specific post based on email and postId
+    app.get("/myposts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      try {
+        const result = await postsCollection.findOne(query);
+        if (result) {
+          res.status(200).send(result);
+        } else {
+          res.status(404).send({ message: "Post not found" });
+        }
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error });
+      }
+    });
+
+    // Delete post by postId
+    app.delete("/myposts/:postId", async (req, res) => {
+      const { postId } = req.params;
+
+      try {
+        // Find and delete the post
+        const result = await postsCollection.deleteOne(postId);
+
+        if (!result) {
+          return res.status(404).json({ message: "Post not found" });
+        }
+
+        res
+          .status(200)
+          .json({ message: `Post with ID ${postId} deleted successfully` });
+      } catch (error) {
+        console.error("Error deleting post:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    });
+
+    // delete post base on email
+    app.delete("/myposts/single", async (req, res) => {
       const email = req.query.email;
       const postId = req.query.postId;
 
@@ -77,9 +116,12 @@ async function run() {
           .send({ message: "Email and Post ID are required." });
       }
 
-      const query = { email: email, _id: new MongoClient.ObjectId(postId) };
+      console.log(`Deleting post with postId: ${postId} for user: ${email}`);
 
       try {
+        // Ensure postId is converted to ObjectId if it's a Mongo ObjectId
+        const query = { email: email, postId: postId }; // Assuming postId is a string here, adjust if needed
+
         const result = await postsCollection.deleteOne(query);
         if (result.deletedCount === 1) {
           res.send({ message: "Post deleted successfully." });
