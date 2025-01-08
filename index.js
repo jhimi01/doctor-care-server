@@ -76,6 +76,31 @@ async function run() {
         res.send(result)
       })
 
+    // delete a specific post by email and post ID
+app.delete('/myposts', async (req, res) => {
+  const email = req.query.email;
+  const postId = req.query.postId;
+
+  if (!email || !postId) {
+    return res.status(400).send({ message: "Email and Post ID are required." });
+  }
+
+  const query = { email: email, _id: new MongoClient.ObjectId(postId) };
+
+  try {
+    const result = await postsCollection.deleteOne(query);
+    if (result.deletedCount === 1) {
+      res.send({ message: "Post deleted successfully." });
+    } else {
+      res.status(404).send({ message: "Post not found or unauthorized access." });
+    }
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    res.status(500).send({ message: "An error occurred while deleting the post." });
+  }
+});
+
+
 
 
 
