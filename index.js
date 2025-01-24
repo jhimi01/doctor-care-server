@@ -42,9 +42,15 @@ async function run() {
     // upload on facebook data
     app.post("/posts", async (req, res) => {
       const body = req.body;
-      const result = await postsCollection.insertOne(body);
+      const newPost = {
+        ...body,
+        likes: [], // Initialize likes as an empty array
+        uploadedtime: new Date(), // Optional: Ensure uploaded time is consistent
+      };
+      const result = await postsCollection.insertOne(newPost);
       res.send(result);
     });
+    
 
     // get uploaded on facebook data
     app.get("/posts", async (req, res) => {
@@ -68,6 +74,62 @@ async function run() {
     });
 
     // --------------modified on facebook todays --------------
+
+
+
+    // like action implement
+    app.post("/posts/like", async (req, res) => {
+      const { postId, userEmail } = req.body;
+      console.log(postId, userEmail);
+    
+      if (!postId || !userEmail) {
+        return res.status(400).send({ message: "postId and userEmail are required." });
+      }
+    
+      if (!ObjectId.isValid(postId)) {
+        return res.status(400).send({ message: "Invalid postId." });
+      }
+    
+      try {
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+    
+        if (!post) {
+          return res.status(404).send({ message: "Post not found." });
+        }
+    
+        const alreadyLiked = post.likes?.includes(userEmail);
+        const updateAction = alreadyLiked
+          ? { $pull: { likes: userEmail } } // Remove like
+          : { $push: { likes: userEmail } }; // Add like
+    
+        const result = await postsCollection.updateOne(
+          { _id: new ObjectId(postId) },
+          updateAction
+        );
+    
+        res.send({
+          success: true,
+          message: alreadyLiked
+            ? "removed"
+            : "added",
+          result,
+        });
+      } catch (error) {
+        console.error("Error liking post:", error);
+        res.status(500).send({ message: "Server error", error });
+      }
+    });
+    
+
+
+
+
+
+
+
+
+
+
 
     // Get a specific post based on email and postId
     app.delete("/myposts/:id", async (req, res) => {
