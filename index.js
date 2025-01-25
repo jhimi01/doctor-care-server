@@ -50,7 +50,6 @@ async function run() {
       const result = await postsCollection.insertOne(newPost);
       res.send(result);
     });
-    
 
     // get uploaded on facebook data
     app.get("/posts", async (req, res) => {
@@ -73,45 +72,43 @@ async function run() {
       console.log("my post", result);
     });
 
-    // --------------modified on facebook todays --------------
-
-
-
     // like action implement
     app.post("/posts/like", async (req, res) => {
       const { postId, userEmail } = req.body;
       console.log(postId, userEmail);
-    
+
       if (!postId || !userEmail) {
-        return res.status(400).send({ message: "postId and userEmail are required." });
+        return res
+          .status(400)
+          .send({ message: "postId and userEmail are required." });
       }
-    
+
       if (!ObjectId.isValid(postId)) {
         return res.status(400).send({ message: "Invalid postId." });
       }
-    
+
       try {
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
-    
+        const post = await postsCollection.findOne({
+          _id: new ObjectId(postId),
+        });
+
         if (!post) {
           return res.status(404).send({ message: "Post not found." });
         }
-    
+
         const alreadyLiked = post.likes?.includes(userEmail);
         const updateAction = alreadyLiked
           ? { $pull: { likes: userEmail } } // Remove like
           : { $push: { likes: userEmail } }; // Add like
-    
+
         const result = await postsCollection.updateOne(
           { _id: new ObjectId(postId) },
           updateAction
         );
-    
+
         res.send({
           success: true,
-          message: alreadyLiked
-            ? "removed"
-            : "added",
+          message: alreadyLiked ? "removed" : "added",
           result,
         });
       } catch (error) {
@@ -119,17 +116,6 @@ async function run() {
         res.status(500).send({ message: "Server error", error });
       }
     });
-    
-
-
-
-
-
-
-
-
-
-
 
     // Get a specific post based on email and postId
     app.delete("/myposts/:id", async (req, res) => {
@@ -147,6 +133,13 @@ async function run() {
         res.status(500).send({ message: "Server error", error });
       }
     });
+
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await usersCollection.deleteOne(query)
+      res.status(200).send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
